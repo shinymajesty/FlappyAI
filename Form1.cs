@@ -4,7 +4,8 @@ namespace Game
 {
     public partial class Form1 : Form
     {
-
+        int vY = 1;
+        int ticksFallen = 0;
         public bool birdIsJumping = false;
         public Form1()
         {
@@ -22,8 +23,12 @@ namespace Game
                 pipeBot.Left = this.ClientSize.Width;
                 pipeTop.Left = this.ClientSize.Width;
             }
-            if(!birdIsJumping)
-                bird.Top += 5;
+            int fallSpeed = vY * ((ticksFallen++ * ticksFallen++) / 350);
+
+            if (!birdIsJumping)
+                bird.Top += fallSpeed;
+
+            label1.Text = fallSpeed.ToString();
         }
 
         private void buttonStart_Click(object sender, EventArgs e)
@@ -37,14 +42,14 @@ namespace Game
          {
             if(e.KeyCode == Keys.Space)
             {
-                IncreaseBirdHeight();
+                Jump();
                 
             }
         }
-        async Task IncreaseBirdHeight()
+        async Task Jump()
         {
             birdIsJumping = true;
-            
+            ticksFallen = 0;
             bird.Image = RotateImage(new Bitmap(bird.Image), -30);
 
 

@@ -34,6 +34,7 @@
             pipeTop = new Panel();
             gameTimer = new System.Windows.Forms.Timer(components);
             button1 = new Button();
+            label1 = new Label();
             ((System.ComponentModel.ISupportInitialize)bird).BeginInit();
             SuspendLayout();
             // 
@@ -80,12 +81,24 @@
             button1.UseVisualStyleBackColor = true;
             button1.Click += buttonStart_Click;
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 27F);
+            label1.ForeColor = SystemColors.ButtonFace;
+            label1.Location = new Point(277, 47);
+            label1.Name = "label1";
+            label1.Size = new Size(115, 48);
+            label1.TabIndex = 8;
+            label1.Text = "label1";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Highlight;
             ClientSize = new Size(1549, 769);
+            Controls.Add(label1);
             Controls.Add(button1);
             Controls.Add(pipeTop);
             Controls.Add(pipeBot);
@@ -95,6 +108,7 @@
             KeyDown += Form1_KeyDown;
             ((System.ComponentModel.ISupportInitialize)bird).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -104,5 +118,6 @@
         private Panel pipeTop;
         private System.Windows.Forms.Timer gameTimer;
         private Button button1;
+        private Label label1;
     }
 }
