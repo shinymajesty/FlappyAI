@@ -10,6 +10,8 @@ namespace Game
         int Score = 0;
         bool hasPassedPipe = false;
         Random rand = new Random();
+        Image birdStraight;
+        Image birdUp;
 
         /// <summary>
         /// List of pipes to be used in the game.
@@ -20,6 +22,8 @@ namespace Game
         {
             InitializeComponent();
             pipes = [(pipeBot1, pipeTop1), (pipeBot2, pipeTop2)];
+            birdStraight = new Bitmap(bird.Image);
+            birdUp = RotateImage(new Bitmap(bird.Image), -30);
             float widthFactor = 0.5f;
             foreach(var pipe in pipes)
             {
@@ -91,7 +95,7 @@ namespace Game
 
             birdIsJumping = true;
             ticksFallen = 0;
-            bird.Image = RotateImage(new Bitmap(bird.Image), -30);
+            bird.Image = birdUp;
 
 
 
@@ -103,7 +107,7 @@ namespace Game
             }
             birdIsJumping = false;
             await Task.Delay(100);
-            bird.Image = RotateImage(new Bitmap(bird.Image), 30);
+            bird.Image = birdStraight;
         }
         public Bitmap RotateImage(Bitmap bmp, float angle)
         {
@@ -115,6 +119,7 @@ namespace Game
                 g.TranslateTransform(-bmp.Width / 2, -bmp.Height / 2);
                 g.DrawImage(bmp, new Point(0, 0));
             }
+            bmp.Dispose();
             return result;
         }
         private void CheckForGameOver()
