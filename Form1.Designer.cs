@@ -76,12 +76,13 @@
             // 
             // pipeBot1
             // 
+            pipeBot1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             pipeBot1.BackColor = Color.ForestGreen;
             pipeBot1.Controls.Add(pictureBox4);
             pipeBot1.Controls.Add(pictureBox3);
             pipeBot1.Location = new Point(435, 516);
             pipeBot1.Name = "pipeBot1";
-            pipeBot1.Size = new Size(200, 316);
+            pipeBot1.Size = new Size(200, 308);
             pipeBot1.TabIndex = 5;
             // 
             // pictureBox4
@@ -91,7 +92,7 @@
             pictureBox4.Dock = DockStyle.Fill;
             pictureBox4.Location = new Point(0, 70);
             pictureBox4.Name = "pictureBox4";
-            pictureBox4.Size = new Size(200, 246);
+            pictureBox4.Size = new Size(200, 238);
             pictureBox4.TabIndex = 3;
             pictureBox4.TabStop = false;
             // 
@@ -129,9 +130,9 @@
             // 
             // pictureBox2
             // 
+            pictureBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             pictureBox2.BackgroundImage = Properties.Resources.pipeBot;
             pictureBox2.BackgroundImageLayout = ImageLayout.Stretch;
-            pictureBox2.Dock = DockStyle.Fill;
             pictureBox2.Location = new Point(0, 0);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(200, 251);
@@ -173,7 +174,7 @@
             panel1.Anchor = AnchorStyles.Top;
             panel1.BackColor = SystemColors.Control;
             panel1.Controls.Add(label1);
-            panel1.Location = new Point(600, -3);
+            panel1.Location = new Point(865, -3);
             panel1.Name = "panel1";
             panel1.Padding = new Padding(4);
             panel1.Size = new Size(200, 63);
@@ -181,10 +182,11 @@
             // 
             // pipeBot2
             // 
+            pipeBot2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             pipeBot2.BackColor = Color.ForestGreen;
             pipeBot2.Controls.Add(pictureBox7);
             pipeBot2.Controls.Add(pictureBox8);
-            pipeBot2.Location = new Point(1419, 603);
+            pipeBot2.Location = new Point(1400, 600);
             pipeBot2.Name = "pipeBot2";
             pipeBot2.Size = new Size(200, 229);
             pipeBot2.TabIndex = 7;
@@ -216,7 +218,7 @@
             pipeTop2.BackColor = Color.ForestGreen;
             pipeTop2.Controls.Add(pictureBox5);
             pipeTop2.Controls.Add(pictureBox6);
-            pipeTop2.Location = new Point(1419, 1);
+            pipeTop2.Location = new Point(1400, 0);
             pipeTop2.Name = "pipeTop2";
             pipeTop2.Size = new Size(200, 111);
             pipeTop2.TabIndex = 8;
@@ -248,7 +250,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Highlight;
-            ClientSize = new Size(1285, 769);
+            ClientSize = new Size(1814, 761);
             Controls.Add(panel1);
             Controls.Add(pipeBot2);
             Controls.Add(pipeTop2);

@@ -12,7 +12,7 @@ namespace Game
         Random rand = new Random();
         Image birdStraight;
         Image birdUp;
-
+        bool isGameRunning = false;
         /// <summary>
         /// List of pipes to be used in the game.
         /// (pipeBot, pipeTop)
@@ -76,6 +76,7 @@ namespace Game
         {
             gameTimer.Start();
             button1.Enabled = false;
+            isGameRunning = true;
             this.Focus();
         }
 
@@ -88,7 +89,7 @@ namespace Game
         }
         private bool CanJump(int jumpHeight, int miniHops)
         {
-            if (gameTimer.Enabled &&
+            if (isGameRunning &&
                 !(birdIsJumping || bird.Top < jumpHeight * miniHops))
             {
                 return true;
@@ -138,11 +139,12 @@ namespace Game
         {
             foreach (var pipe in pipes)
             {
-                if (bird.Bounds.IntersectsWith(pipe.pipeBot.Bounds) || bird.Bounds.IntersectsWith(pipe.pipeTop.Bounds))
+                if (bird.Bounds.IntersectsWith(pipe.pipeBot.Bounds) || bird.Bounds.IntersectsWith(pipe.pipeTop.Bounds) || bird.Top > this.Height-bird.Height)
                 {
                     gameTimer.Stop();
                     button1.Enabled = true;
                     MessageBox.Show("Game Over");
+                    isGameRunning = false;
                     Application.Restart();
                 }
             }
