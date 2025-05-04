@@ -142,7 +142,7 @@
             // gameTimer
             // 
             gameTimer.Interval = 10;
-            gameTimer.Tick += gameTimer_Tick;
+            gameTimer.Tick += GameTimer_Tick;
             // 
             // button1
             // 
@@ -153,7 +153,7 @@
             button1.TabStop = false;
             button1.Text = "Start";
             button1.UseVisualStyleBackColor = true;
-            button1.Click += buttonStart_Click;
+            button1.Click += ButtonStart_Click;
             // 
             // label1
             // 

@@ -1,23 +1,23 @@
 using System.Drawing.Drawing2D;
+using AForge;
 
 namespace Game
 {
     public partial class Form1 : Form
     {
-        int vY = 1;
+        readonly int vY = 1;
         int ticksFallen = 0;
         public bool birdIsJumping = false;
         int Score = 0;
-        bool hasPassedPipe = false;
-        Random rand = new Random();
-        Image birdStraight;
-        Image birdUp;
+        private readonly Random rand = new();
+        private readonly Image birdStraight;
+        private readonly Image birdUp;
         bool isGameRunning = false;
         /// <summary>
         /// List of pipes to be used in the game.
         /// (pipeBot, pipeTop)
         /// </summary>
-        List<(Panel pipeBot, Panel pipeTop)> pipes = [];
+        private readonly List<(Panel pipeBot, Panel pipeTop)> pipes = [];
         public Form1()
         {
             InitializeComponent();
@@ -25,54 +25,52 @@ namespace Game
             birdStraight = new Bitmap(bird.Image);
             birdUp = RotateImage(new Bitmap(bird.Image), -30);
             float widthFactor = 0.5f;
-            foreach(var pipe in pipes)
+            foreach (var (pipeBot, pipeTop) in pipes)
             {
-                pipe.pipeBot.Left =  (int)Math.Round(this.ClientSize.Width * widthFactor);
-                pipe.pipeTop.Left =  (int)Math.Round(this.ClientSize.Width * widthFactor);
+                pipeBot.Left =  (int)Math.Round(this.ClientSize.Width * widthFactor);
+                pipeTop.Left =  (int)Math.Round(this.ClientSize.Width * widthFactor);
                 widthFactor += 0.5f;            
             }
         }
 
 
-        private void gameTimer_Tick(object sender, EventArgs e)
+        private void GameTimer_Tick(object sender, EventArgs e)
         {
-            foreach (var pipe in pipes)
+            foreach (var (pipeBot, pipeTop) in pipes)
             {
-                pipe.pipeBot.Left -= 10;
-                pipe.pipeTop.Left -= 10;
+                pipeBot.Left -= 10;
+                pipeTop.Left -= 10;
 
-                if (pipe.pipeBot.Left < -pipe.pipeBot.Width)
+                if (pipeBot.Left < -pipeBot.Width)
                 {
-                    pipe.pipeBot.Left = (int)Math.Round(this.ClientSize.Width * 1.0);
-                    pipe.pipeTop.Left = (int)Math.Round(this.ClientSize.Width * 1.0);
+                    pipeBot.Left = (int)Math.Round(this.ClientSize.Width * 1.0);
+                    pipeTop.Left = (int)Math.Round(this.ClientSize.Width * 1.0);
 
 
                     int pipeHeightLimit = this.ClientSize.Height - 300;
                     int bottomPipeHeight = rand.Next(50, pipeHeightLimit);
                     int topPipeHeight = this.ClientSize.Height - bottomPipeHeight - 250;
-                    (pipe.pipeBot.Height, pipe.pipeTop.Height) = (bottomPipeHeight, topPipeHeight);
-                    pipe.pipeBot.Top = this.ClientSize.Height - bottomPipeHeight;
+                    (pipeBot.Height, pipeTop.Height) = (bottomPipeHeight, topPipeHeight);
+                    pipeBot.Top = this.ClientSize.Height - bottomPipeHeight;
                 }
             }
             int fallSpeed = vY * ((ticksFallen++ * ticksFallen++) / 350);
 
             if (!birdIsJumping)
                 bird.Top += fallSpeed;
-            foreach (var pipe in pipes)
+            foreach (var (pipeBot, _) in pipes)
             {
-                if (pipe.pipeBot.Left < bird.Left && pipe.pipeBot.Right > bird.Left)
+                if (pipeBot.Left < bird.Left && pipeBot.Right > bird.Left)
                 {
-                    hasPassedPipe = true;
                     Score++;
                     label1.Text = "Score: " + Math.Round(Score / 20.0).ToString();
                 }
-                else hasPassedPipe = false;
             }
 
             CheckForGameOver();
         }
 
-        private void buttonStart_Click(object sender, EventArgs e)
+        private void ButtonStart_Click(object sender, EventArgs e)
         {
             gameTimer.Start();
             button1.Enabled = false;
@@ -84,7 +82,7 @@ namespace Game
         {
             if (e.KeyCode == Keys.Space)
             {
-                Jump();
+                _ = Jump();
             }
         }
         private bool CanJump(int jumpHeight, int miniHops)
@@ -113,8 +111,7 @@ namespace Game
 
 
 
-            foreach (var i in Enumerable.Range(0, miniHops))
-            {
+            for(int i = 0; i < miniHops; i++) { 
                 bird.Top -= jumpHeight;
                 await Task.Delay(1);
             }
@@ -122,24 +119,24 @@ namespace Game
             await Task.Delay(100);
             bird.Image = birdStraight;
         }
-        public Bitmap RotateImage(Bitmap bmp, float angle)
+        public static Bitmap RotateImage(Bitmap bmp, float angle)
         {
-            Bitmap result = new Bitmap(bmp.Width, bmp.Height);
+            Bitmap result = new(bmp.Width, bmp.Height);
             using (Graphics g = Graphics.FromImage(result))
             {
                 g.TranslateTransform(bmp.Width / 2, bmp.Height / 2);
                 g.RotateTransform(angle);
                 g.TranslateTransform(-bmp.Width / 2, -bmp.Height / 2);
-                g.DrawImage(bmp, new Point(0, 0));
+                g.DrawImage(bmp, new System.Drawing.Point(0, 0));
             }
             bmp.Dispose();
             return result;
         }
         private void CheckForGameOver()
         {
-            foreach (var pipe in pipes)
+            foreach (var (pipeBot, pipeTop) in pipes)
             {
-                if (bird.Bounds.IntersectsWith(pipe.pipeBot.Bounds) || bird.Bounds.IntersectsWith(pipe.pipeTop.Bounds) || bird.Top > this.Height-bird.Height)
+                if (bird.Bounds.IntersectsWith(pipeBot.Bounds) || bird.Bounds.IntersectsWith(pipeTop.Bounds) || bird.Top > this.Height-bird.Height)
                 {
                     gameTimer.Stop();
                     button1.Enabled = true;
