@@ -86,11 +86,23 @@ namespace Game
                 Jump();
             }
         }
+        private bool CanJump(int jumpHeight, int miniHops)
+        {
+            if (gameTimer.Enabled &&
+                !(birdIsJumping || bird.Top < jumpHeight * miniHops))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         async Task Jump()
         {
             int jumpHeight = 10;
             int miniHops = 10;
-            if (birdIsJumping || bird.Top < jumpHeight * miniHops)
+            if (!CanJump(jumpHeight, miniHops))
                 return;
 
             birdIsJumping = true;
