@@ -47,6 +47,7 @@
             pipeTop2 = new Panel();
             pictureBox5 = new PictureBox();
             pictureBox6 = new PictureBox();
+            label2 = new Label();
             ((System.ComponentModel.ISupportInitialize)bird).BeginInit();
             pipeBot1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox4).BeginInit();
@@ -245,12 +246,22 @@
             pictureBox6.TabIndex = 4;
             pictureBox6.TabStop = false;
             // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(12, 516);
+            label2.Name = "label2";
+            label2.Size = new Size(38, 15);
+            label2.TabIndex = 10;
+            label2.Text = "label2";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Highlight;
             ClientSize = new Size(1814, 761);
+            Controls.Add(label2);
             Controls.Add(panel1);
             Controls.Add(pipeBot2);
             Controls.Add(pipeTop2);
@@ -277,6 +288,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox5).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox6).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -298,5 +310,6 @@
         private PictureBox pictureBox8;
         private PictureBox pictureBox5;
         private PictureBox pictureBox6;
+        private Label label2;
     }
 }

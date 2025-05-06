@@ -1,0 +1,114 @@
+﻿using Accord.Neuro;
+using Accord.Neuro.Networks;
+using Game;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+internal class GeneticAlgorithm
+{
+    private readonly int _populationSize;
+    private readonly Random _random = new();
+    public List<(double[] genome, double fitness)> Population { get; private set; } = new();
+
+    public GeneticAlgorithm(int populationSize)
+    {
+        _populationSize = populationSize;
+    }
+
+    public void Initialize(List<(double[] genome, double fitness)> initialPopulation)
+    {
+        Population = initialPopulation;
+    }
+
+    public List<double[]> EvolveNextGeneration(double mutationRate = 0.05, double mutationAmount = 0.3)
+    {
+        var sorted = Population.OrderByDescending(p => p.fitness).ToList();
+        var parents = sorted.Take(_populationSize / 5).ToList(); // top 20% survive
+
+        List<double[]> nextGeneration = new();
+
+        while (nextGeneration.Count < _populationSize)
+        {
+            var parent1 = parents[_random.Next(parents.Count)].genome;
+            var parent2 = parents[_random.Next(parents.Count)].genome;
+
+            var child = SpawnBaby(parent1, parent2);
+            Mutate(child, mutationRate, mutationAmount);
+            nextGeneration.Add(child);
+        }
+
+        return nextGeneration;
+    }
+
+    private double[] SpawnBaby(double[] parent1, double[] parent2)
+    {
+        var child = new double[parent1.Length];
+        for (int i = 0; i < parent1.Length; i++)
+        {
+            child[i] = _random.NextDouble() < 0.5 ? parent1[i] : parent2[i];
+        }
+        return child;
+    }
+
+    private void Mutate(double[] genome, double rate, double amount)
+    {
+        for (int i = 0; i < genome.Length; i++)
+        {
+            if (_random.NextDouble() < rate)
+            {
+                genome[i] += (_random.NextDouble() * 2 - 1) * amount;
+            }
+        }
+    }
+
+    public void SetFitness(List<Bird> birds, List<ActivationNetwork> networks)
+    {
+        Population.Clear();
+        for (int i = 0; i < birds.Count; i++)
+        {
+            var genome = ExtractGenome(networks[i]);
+            Population.Add((genome, birds[i].Fitness));
+        }
+    }
+
+    public void AssignGenomesToNetworks(List<double[]> newGenomes, List<ActivationNetwork> networks)
+    {
+        for (int i = 0; i < newGenomes.Count; i++)
+        {
+            SetNetworkWeights(networks[i], newGenomes[i]);
+        }
+    }
+
+    private double[] ExtractGenome(ActivationNetwork network)
+    {
+        List<double> weights = new();
+        foreach (var layer in network.Layers)
+        {
+            foreach (ActivationNeuron neuron in layer.Neurons)
+            {
+                weights.AddRange(neuron.Weights);
+                weights.Add(neuron.Threshold);
+            }
+        }
+        return weights.ToArray();
+    }
+
+    public void SetNetworkWeights(ActivationNetwork network, double[] genome)
+    {
+        int index = 0;
+        foreach (ActivationLayer layer in network.Layers)
+        {
+            foreach (ActivationNeuron neuron in layer.Neurons)
+            {
+                for (int i = 0; i < neuron.Weights.Length; i++)
+                {
+                    neuron.Weights[i] = genome[index++];
+                }
+                neuron.Threshold = genome[index++];
+            }
+        }
+    }
+    
+
+}
