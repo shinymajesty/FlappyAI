@@ -6,53 +6,58 @@ namespace Game
 {
     public class GameManager
     {
-        private readonly Form _form;
-        private readonly System.Windows.Forms.Timer _gameTimer;
-        private readonly Label _scoreLabel;
-        private readonly Label _debugLabel;
+        private readonly Form form;
+        private readonly System.Windows.Forms.Timer gameTimer;
+        private readonly Label scoreLabel;
+        private readonly Label debugLabel;
 
-        private BirdManager _birdManager;
-        private PipeManager _pipeManager;
+        private BirdManager birdManager;
+        private PipeManager pipeManager;
 
-        private int _score = 0;
+        private int score = 0;
         private const int PIPE_SPEED = 10;
-        private bool _isGameRunning = false;
+        private bool isGameRunning = false;
 
+        public List<GenomeEntry> SerializablePopulation =>
+    [.. birdManager.Population.Select(p => new GenomeEntry { Genome = p.genome, Fitness = p.fitness })];
+
+        public void Initialize(List<GenomeEntry> initialPopulation) => birdManager.Initialize(initialPopulation);
         public GameManager(Form form, System.Windows.Forms.Timer gameTimer, Label scoreLabel, Label debugLabel)
         {
-            _form = form;
-            _gameTimer = gameTimer;
-            _scoreLabel = scoreLabel;
-            _debugLabel = debugLabel;
+            this.form = form;
+            this.gameTimer = gameTimer;
+            this.scoreLabel = scoreLabel;
+            this.debugLabel = debugLabel;
 
             // Connect the timer tick event
-            _gameTimer.Tick += GameTick;
+            this.gameTimer.Tick += GameTick;
         }
 
         public void InitializeGame(PictureBox birdTemplate, List<(Panel pipeBot, Panel pipeTop)> pipes, int birdCount = 100)
         {
-            _birdManager = new BirdManager(_form, birdTemplate, birdCount);
-            _pipeManager = new PipeManager(pipes, _form.ClientSize.Width, _form.ClientSize.Height);
+            birdManager = new BirdManager(form, birdTemplate, birdCount);
+            pipeManager = new PipeManager(pipes, form.ClientSize.Width, form.ClientSize.Height);
+            form.MaximumSize = form.MinimumSize = form.ClientSize;
         }
 
         public void StartGame()
         {
-            _isGameRunning = true;
-            _score = 0;
+            isGameRunning = true;
+            score = 0;
             UpdateScoreDisplay();
 
-            _birdManager.SetGameRunning(true);
-            _gameTimer.Start();
+            birdManager.SetGameRunning(true);
+            gameTimer.Start();
         }
 
         public void StopGame()
         {
-            _isGameRunning = false;
-            _gameTimer.Stop();
-            _birdManager.SetGameRunning(false);
+            isGameRunning = false;
+            gameTimer.Stop();
+            birdManager.SetGameRunning(false);
 
             // Disable Add Bird button when game stops
-            foreach (Control control in _form.Controls)
+            foreach (Control control in form.Controls)
             {
                 if (control is Button button && button.Text.Contains("Add Bird"))
                 {
@@ -65,9 +70,9 @@ namespace Game
         public async void ResetGame()
         {
             StopGame();
-            _birdManager.Reset();
-            _pipeManager.Reset();
-            _score = 0;
+            birdManager.Reset();
+            pipeManager.Reset();
+            score = 0;
             UpdateScoreDisplay();
             StartGame();
         }
@@ -77,17 +82,17 @@ namespace Game
             // Check for game over
             CheckForGameOver();
 
-            if (!_isGameRunning)
+            if (!isGameRunning)
                 return;
 
             // Move the pipes
-            _pipeManager.MovePipes(PIPE_SPEED);
+            pipeManager.MovePipes(PIPE_SPEED);
 
             // Get the nearest pipe for AI decisions
-            var currentPipe = _pipeManager.GetNearestPipe(_birdManager.Birds[0]);
+            var currentPipe = pipeManager.GetNearestPipe(birdManager.Birds[0]);
 
             // Update all birds
-            _birdManager.UpdateBirds(currentPipe, _form.ClientSize.Height);
+            birdManager.UpdateBirds(currentPipe, form.ClientSize.Height);
 
             // Check for scoring
             HandleScoring(currentPipe);
@@ -101,14 +106,14 @@ namespace Game
         private void HandleScoring(in (Panel pipeBot, Panel pipeTop) pipe)
         {
             // Only score for the first bird (player or AI)
-            if (_birdManager.Birds.Count > 0)
+            if (birdManager.Birds.Count > 0)
             {
-                Bird firstBird = _birdManager.Birds[0];
+                Bird firstBird = birdManager.Birds[0];
 
                 // Score a point when bird passes the middle of the pipe
                 if (pipe.pipeBot.Left < firstBird.Left && pipe.pipeBot.Right > firstBird.Left)
                 {
-                    _score++;
+                    score++;
                     UpdateScoreDisplay();
                 }
             }
@@ -116,14 +121,14 @@ namespace Game
 
         private void UpdateScoreDisplay()
         {
-            _scoreLabel.Text = "Score: " + Math.Round(_score / 20.0).ToString();
+            scoreLabel.Text = "Score: " + Math.Round(score / 20.0).ToString();
         }
 
         private void UpdateDebugInfo(in (Panel pipeBot, Panel pipeTop) currentPipe)
         {
-            if (_birdManager.Birds.Count > 0)
+            if (birdManager.Birds.Count > 0)
             {
-                Bird firstBird = _birdManager.Birds[0];
+                Bird firstBird = birdManager.Birds[0];
 
                 // Update debug label with information about the first bird
                 double[] inputs = new double[] {
@@ -133,47 +138,43 @@ namespace Game
                     currentPipe.pipeTop.Top + currentPipe.pipeTop.Height
                 };
 
-                double[] output = _birdManager.Networks[0].Compute(inputs);
+                double[] output = birdManager.Networks[0].Compute(inputs);
 
-                _debugLabel.Text = $"Output: {output[0]}\n" +
-                                  $"Birds Alive: {_birdManager.GetAliveBirds(_form.ClientSize.Height).Count}\n" +
-                                  $"Hit Ground: {(firstBird.Top > _form.ClientSize.Height - firstBird.Height)}";
+                debugLabel.Text = $"Output: {output[0]}\n" +
+                                  $"Birds Alive: {birdManager.GetAliveBirds(form.ClientSize.Height).Count}\n" +
+                                  $"Hit Ground: {(firstBird.Top > form.ClientSize.Height - firstBird.Height)}\n" +
+                                  $"Birds Dead: {birdManager.Birds.Count(b => b.IsDead)}\n" + 
+                                  $"Generation: {birdManager.Generation}";
             }
         }
 
         private void CheckForGameOver()
         {
-            List<Bird> aliveBirds = _birdManager.GetAliveBirds(_form.ClientSize.Height);
+            List<Bird> aliveBirds = birdManager.GetAliveBirds(form.ClientSize.Height);
 
             foreach (Bird bird in aliveBirds)
             {
                 // Check if the bird hit a pipe
-                if (_pipeManager.CheckCollision(bird))
+                if (pipeManager.CheckCollision(bird))
                 {
-                    _birdManager.KillBird(bird);
+                    birdManager.KillBird(bird);
                 }
             }
 
-            // Game over if no birds are alive
-            if (_birdManager.GetAliveBirds(_form.ClientSize.Height).Count == 0)
+            var x = aliveBirds.Count == 0;
+            if (x)
             {
-                _birdManager.EndGeneration();
+                birdManager.EndGeneration();
                 ResetGame();
                 
             }
         }
 
-        public void HandleKeyPress(Keys key)
-        {
-            if (_isGameRunning && key == Keys.Space && _birdManager.PlayerBird != null)
-            {
-                _ = _birdManager.PlayerBird.Jump();
-            }
-        }
+        
 
         public void AddBird(PictureBox templateBird)
         {
-            _birdManager.AddBird(templateBird);
+            birdManager.AddBird(templateBird);
         }
     }
 }

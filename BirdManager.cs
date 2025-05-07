@@ -11,28 +11,27 @@ namespace Game
     {
         public List<Bird> Birds { get; private set; } = new();
         public List<ActivationNetwork> Networks { get; private set; } = [];
+        public List<(double[] genome, double fitness)> Population => ga.Population;
+        public int Generation => ga.Generation;
 
+        private readonly Form parentForm;
+        private GeneticAlgorithm ga;
+        private int populationSize;
+        private PictureBox templateBird;
+        private float mutationRate = 0.1f;
 
-        private readonly Form _parentForm;
-        private readonly int _birdOffsetY = 40; // Vertical distance between birds
-        private GeneticAlgorithm _ga;
-        private int _populationSize;
-
-
-        public Bird PlayerBird => Birds.Count > 0 ? Birds[0] : null;
 
         public BirdManager(Form parentForm, PictureBox templateBird, int birdCount = 1)
         {
-            _parentForm = parentForm;
-            _populationSize = birdCount;
-            _ga = new GeneticAlgorithm(_populationSize);
-
-            // Create the player's bird first using the existing template
-            Birds.Add(new Bird(templateBird, false));
+            this.parentForm = parentForm;
+            populationSize = birdCount;
+            ga = new GeneticAlgorithm(populationSize);
+            this.templateBird = templateBird;
+            this.templateBird.Visible = false; // Hide the template bird
             Networks.Add(CreateNetwork());
 
             // Create AI birds
-            for (int i = 1; i < birdCount; i++)
+            for (int i = 0; i < birdCount; i++)
             {
                 CreateAIBird(templateBird, i);
             }
@@ -49,12 +48,12 @@ namespace Game
                 Size = templateBird.Size,
                 Location = new Point(
                     templateBird.Left,
-                    templateBird.Top + (_birdOffsetY * index)
+                    templateBird.Top
                 )
             };
 
             // Add the new PictureBox to the form
-            _parentForm.Controls.Add(newBirdPicture);
+            parentForm.Controls.Add(newBirdPicture);
             newBirdPicture.BringToFront();
 
             // Create and add a new bird
@@ -77,9 +76,52 @@ namespace Game
             );
         }
 
+        public void Initialize(List<GenomeEntry> initialPopulation)
+        {
+            // Step 1: Pass genomes to GA (so it's in sync internally)
+            ga.Initialize(initialPopulation);
+
+            // Step 2: Clear old birds and networks
+            foreach (var bird in Birds)
+            {
+                if (bird.PictureBox != null && !bird.PictureBox.IsDisposed)
+                {
+                    parentForm.Controls.Remove(bird.PictureBox);
+                    bird.Dispose();
+                }
+            }
+
+            Birds.Clear();
+            Networks.Clear();
+
+            // Step 3: Recreate birds and load networks from genomes
+            foreach (var genome in initialPopulation)
+            {
+                // Visual
+                PictureBox newBirdPicture = new()
+                {
+                    Image = new Bitmap(templateBird.Image),
+                    SizeMode = templateBird.SizeMode,
+                    BackColor = Color.Transparent,
+                    Size = templateBird.Size,
+                    Location = new Point(templateBird.Left, templateBird.Top)
+                };
+
+                parentForm.Controls.Add(newBirdPicture);
+                newBirdPicture.BringToFront();
+
+                Bird newBird = new(newBirdPicture, false);
+                Birds.Add(newBird);
+
+                // Network
+                var network = CreateNetwork();
+                Networks.Add(network);
+                ga.SetNetworkWeights(network, genome.Genome); // Load ge
+            }
+        }
         public void UpdateBirds((Panel pipeBot, Panel pipeTop) currentPipe, int clientHeight)
         {
-            CleanupDeadBirds();
+            //CleanupDeadBirds();
             HandleDeadBirds(clientHeight);
             for (int i = 0; i < Birds.Count; i++)
             {
@@ -91,34 +133,23 @@ namespace Game
                 else
                     bird.TicksAlive++;
                 // AI decision
-                if (i > 0 || i == 0 && PlayerBird != null) // For AI birds or if first bird is AI-controlled
+                double[] inputs = [
+                    bird.Top,
+                    bird.VelocityY,
+                    currentPipe.pipeBot.Top,
+                    currentPipe.pipeTop.Top + currentPipe.pipeTop.Height
+                ];
+
+                double[] output = Networks[i].Compute(inputs);
+
+                if (output[0] > 0.5)
                 {
-                    double[] inputs = [
-                        bird.Top,
-                        bird.VelocityY,
-                        currentPipe.pipeBot.Top,
-                        currentPipe.pipeTop.Top + currentPipe.pipeTop.Height
-                    ];
-
-                    double[] output = Networks[i].Compute(inputs);
-
-                    if (output[0] > 0.5)
-                    {
-                        _ = bird.Jump();
-                    }
-                    else
-                    {
-                        bird.Fall();
-                    }
+                    _ = bird.Jump();
                 }
                 else
                 {
-                    bird.Fall(); // Player bird falls naturally, jumps controlled by key press
+                    bird.Fall();
                 }
-            }
-            if (Birds.All(b => b.IsDead))
-            {
-                EvolveNewGeneration();
             }
 
         }
@@ -169,11 +200,11 @@ namespace Game
                 {
                     if (Birds[i].PictureBox != null && !Birds[i].PictureBox.IsDisposed)
                     {
-                        _parentForm.Controls.Remove(Birds[i].PictureBox);
+                        parentForm.Controls.Remove(Birds[i].PictureBox);
                         Birds[i].Dispose();
                     }
-                    Birds.RemoveAt(i);
-                    Networks.RemoveAt(i);
+                    //Birds.RemoveAt(i);
+                    //Networks.RemoveAt(i);
                 }
             }
         }
@@ -188,10 +219,10 @@ namespace Game
 
             // Create new birds if some were completely removed
             int currentBirdCount = Birds.Count;
-            if (currentBirdCount == 0 && _parentForm.Controls.OfType<PictureBox>().Any(pb => pb.Tag?.ToString() == "BirdTemplate"))
+            if (currentBirdCount == 0 && parentForm.Controls.OfType<PictureBox>().Any(pb => pb.Tag?.ToString() == "BirdTemplate"))
             {
                 // Find the template bird
-                PictureBox templateBird = _parentForm.Controls.OfType<PictureBox>()
+                PictureBox templateBird = parentForm.Controls.OfType<PictureBox>()
                     .First(pb => pb.Tag?.ToString() == "BirdTemplate");
 
                 // Create the player bird
@@ -208,37 +239,23 @@ namespace Game
 
         public void EndGeneration()
         {
-
-            for (int i = 0; i < Birds.Count; i++)
-            {
-                // Store the network and fitness of each bird
-            }
+            EvolveNewGeneration();
         }
 
-        double[] GetNetworkWeights(ActivationNetwork network)
-        {
-            var weights = new List<double>();
-
-            foreach (ActivationLayer layer in network.Layers)
-                foreach (ActivationNeuron neuron in layer.Neurons)
-                    weights.AddRange(neuron.Weights.Append(neuron.Threshold)); // include weights + bias
-
-            return weights.ToArray();
-        }
         private void EvolveNewGeneration()
         {
             // Step 1: Send fitness data to GA
-            _ga.SetFitness(Birds, Networks);
+            ga.SetFitness(Birds, Networks);
 
             // Step 2: Evolve next generation of genomes
-            var newGenomes = _ga.EvolveNextGeneration();
+            var newGenomes = ga.EvolveNextGeneration(mutationRate);
 
             // Step 3: Clear old visuals and memory
             foreach (var bird in Birds)
             {
                 if (bird.PictureBox != null && !bird.PictureBox.IsDisposed)
                 {
-                    _parentForm.Controls.Remove(bird.PictureBox);
+                    parentForm.Controls.Remove(bird.PictureBox);
                     bird.Dispose();
                 }
             }
@@ -247,10 +264,9 @@ namespace Game
             Networks.Clear();
 
             // Step 4: Recreate birds with evolved brains
-            var template = _parentForm.Controls.OfType<PictureBox>()
-                             .First(pb => pb.Tag?.ToString() == "BirdTemplate");
+            var template = this.templateBird;
 
-            for (int i = 0; i < _populationSize; i++)
+            for (int i = 0; i < populationSize; i++)
             {
                 // Create new bird visual
                 PictureBox birdPicture = new()
@@ -259,10 +275,10 @@ namespace Game
                     SizeMode = template.SizeMode,
                     BackColor = Color.Transparent,
                     Size = template.Size,
-                    Location = new Point(template.Left, template.Top + (_birdOffsetY * i))
+                    Location = new Point(template.Left, template.Top)
                 };
 
-                _parentForm.Controls.Add(birdPicture);
+                parentForm.Controls.Add(birdPicture);
                 birdPicture.BringToFront();
 
                 Bird bird = new(birdPicture, false);
@@ -270,7 +286,7 @@ namespace Game
 
                 // Load weights into a new network
                 ActivationNetwork net = CreateNetwork();
-                _ga.SetNetworkWeights(net, newGenomes[i]);
+                ga.SetNetworkWeights(net, newGenomes[i]);
                 Networks.Add(net);
             }
         }

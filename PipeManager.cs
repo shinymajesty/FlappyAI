@@ -7,24 +7,24 @@ namespace Game
 {
     public class PipeManager
     {
-        private readonly List<(Panel pipeBot, Panel pipeTop)> _pipes;
-        private readonly Random _random = new();
-        private readonly int _clientWidth;
-        private readonly int _clientHeight;
-        private readonly int _pipeGap = 250; // Gap between top and bottom pipes
+        private readonly List<(Panel pipeBot, Panel pipeTop)> pipes;
+        private readonly Random random = new();
+        private readonly int clientWidth;
+        private readonly int clientHeight;
+        private readonly int pipeGap = 250; // Gap between top and bottom pipes
 
         public PipeManager(List<(Panel pipeBot, Panel pipeTop)> pipes, int clientWidth, int clientHeight)
         {
-            _pipes = pipes;
-            _clientWidth = clientWidth;
-            _clientHeight = clientHeight;
+            this.pipes = pipes;
+            this.clientWidth = clientWidth;
+            this.clientHeight = clientHeight;
 
             // Initialize pipes position
             float widthFactor = 0.5f;
-            foreach (var (pipeBot, pipeTop) in _pipes)
+            foreach (var (pipeBot, pipeTop) in this.pipes)
             {
-                pipeBot.Left = (int)Math.Round(_clientWidth * widthFactor);
-                pipeTop.Left = (int)Math.Round(_clientWidth * widthFactor);
+                pipeBot.Left = (int)Math.Round(this.clientWidth * widthFactor);
+                pipeTop.Left = (int)Math.Round(this.clientWidth * widthFactor);
 
                 // Set initial height
                 ResetPipePosition(pipeBot, pipeTop);
@@ -35,7 +35,7 @@ namespace Game
 
         public void MovePipes(int speed)
         {
-            foreach (var (pipeBot, pipeTop) in _pipes)
+            foreach (var (pipeBot, pipeTop) in pipes)
             {
                 pipeBot.Left -= speed;
                 pipeTop.Left -= speed;
@@ -43,8 +43,8 @@ namespace Game
                 // If pipe goes off-screen, reset its position
                 if (pipeBot.Left < -pipeBot.Width)
                 {
-                    pipeBot.Left = (int)Math.Round(_clientWidth * 1.0);
-                    pipeTop.Left = (int)Math.Round(_clientWidth * 1.0);
+                    pipeBot.Left = (int)Math.Round(clientWidth * 1.0);
+                    pipeTop.Left = (int)Math.Round(clientWidth * 1.0);
 
                     ResetPipePosition(pipeBot, pipeTop);
                 }
@@ -53,22 +53,22 @@ namespace Game
 
         private void ResetPipePosition(Panel pipeBot, Panel pipeTop)
         {
-            int pipeHeightLimit = _clientHeight - 300;
-            int bottomPipeHeight = _random.Next(50, pipeHeightLimit);
-            int topPipeHeight = _clientHeight - bottomPipeHeight - _pipeGap;
+            int pipeHeightLimit = clientHeight - 300;
+            int bottomPipeHeight = random.Next(50, pipeHeightLimit);
+            int topPipeHeight = clientHeight - bottomPipeHeight - pipeGap;
 
             pipeBot.Height = bottomPipeHeight;
             pipeTop.Height = topPipeHeight;
-            pipeBot.Top = _clientHeight - bottomPipeHeight;
+            pipeBot.Top = clientHeight - bottomPipeHeight;
             pipeTop.Top = 0; // Top pipe is always aligned to the top
         }
 
         public (Panel pipeBot, Panel pipeTop) GetNearestPipe(Bird bird)
         {
-            (Panel pipeBot, Panel pipeTop) nearestPipe = _pipes[0];
+            (Panel pipeBot, Panel pipeTop) nearestPipe = pipes[0];
             int minDistance = int.MaxValue;
 
-            foreach (var pipe in _pipes)
+            foreach (var pipe in pipes)
             {
                 // Only consider pipes that are ahead of the bird
                 if (pipe.pipeBot.Left + pipe.pipeBot.Width > bird.Left)
@@ -87,7 +87,7 @@ namespace Game
 
         public bool CheckCollision(Bird bird)
         {
-            foreach (var (pipeBot, pipeTop) in _pipes)
+            foreach (var (pipeBot, pipeTop) in pipes)
             {
                 if (bird.Bounds.IntersectsWith(pipeBot.Bounds) ||
                     bird.Bounds.IntersectsWith(pipeTop.Bounds))
@@ -102,10 +102,10 @@ namespace Game
         public void Reset()
         {
             float widthFactor = 0.5f;
-            foreach (var (pipeBot, pipeTop) in _pipes)
+            foreach (var (pipeBot, pipeTop) in pipes)
             {
-                pipeBot.Left = (int)Math.Round(_clientWidth * widthFactor);
-                pipeTop.Left = (int)Math.Round(_clientWidth * widthFactor);
+                pipeBot.Left = (int)Math.Round(clientWidth * widthFactor);
+                pipeTop.Left = (int)Math.Round(clientWidth * widthFactor);
                 ResetPipePosition(pipeBot, pipeTop);
                 widthFactor += 0.5f;
             }

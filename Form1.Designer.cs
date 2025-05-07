@@ -38,7 +38,7 @@
             pictureBox1 = new PictureBox();
             pictureBox2 = new PictureBox();
             gameTimer = new System.Windows.Forms.Timer(components);
-            button1 = new Button();
+            start_button = new Button();
             label1 = new Label();
             panel1 = new Panel();
             pipeBot2 = new Panel();
@@ -48,6 +48,12 @@
             pictureBox5 = new PictureBox();
             pictureBox6 = new PictureBox();
             label2 = new Label();
+            export_button = new Button();
+            import_button = new Button();
+            openFileDialog1 = new OpenFileDialog();
+            saveFileDialog1 = new SaveFileDialog();
+            numericUpDown1 = new NumericUpDown();
+            label3 = new Label();
             ((System.ComponentModel.ISupportInitialize)bird).BeginInit();
             pipeBot1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox4).BeginInit();
@@ -62,13 +68,14 @@
             pipeTop2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox5).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox6).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             SuspendLayout();
             // 
             // bird
             // 
             bird.BackColor = Color.Transparent;
             bird.Image = (Image)resources.GetObject("bird.Image");
-            bird.Location = new Point(128, 270);
+            bird.Location = new Point(305, 328);
             bird.Name = "bird";
             bird.Size = new Size(101, 70);
             bird.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -81,7 +88,7 @@
             pipeBot1.BackColor = Color.ForestGreen;
             pipeBot1.Controls.Add(pictureBox4);
             pipeBot1.Controls.Add(pictureBox3);
-            pipeBot1.Location = new Point(435, 516);
+            pipeBot1.Location = new Point(548, 516);
             pipeBot1.Name = "pipeBot1";
             pipeBot1.Size = new Size(200, 308);
             pipeBot1.TabIndex = 5;
@@ -113,7 +120,7 @@
             pipeTop1.BackColor = Color.ForestGreen;
             pipeTop1.Controls.Add(pictureBox1);
             pipeTop1.Controls.Add(pictureBox2);
-            pipeTop1.Location = new Point(435, 1);
+            pipeTop1.Location = new Point(548, 1);
             pipeTop1.Name = "pipeTop1";
             pipeTop1.Size = new Size(200, 251);
             pipeTop1.TabIndex = 6;
@@ -145,16 +152,16 @@
             gameTimer.Interval = 10;
             gameTimer.Tick += GameTimer_Tick;
             // 
-            // button1
+            // start_button
             // 
-            button1.Location = new Point(12, 12);
-            button1.Name = "button1";
-            button1.Size = new Size(107, 48);
-            button1.TabIndex = 7;
-            button1.TabStop = false;
-            button1.Text = "Start";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += ButtonStart_Click;
+            start_button.Location = new Point(12, 12);
+            start_button.Name = "start_button";
+            start_button.Size = new Size(107, 48);
+            start_button.TabIndex = 7;
+            start_button.TabStop = false;
+            start_button.Text = "Start";
+            start_button.UseVisualStyleBackColor = true;
+            start_button.Click += ButtonStart_Click;
             // 
             // label1
             // 
@@ -255,12 +262,71 @@
             label2.TabIndex = 10;
             label2.Text = "label2";
             // 
+            // export_button
+            // 
+            export_button.Location = new Point(128, 66);
+            export_button.Name = "export_button";
+            export_button.Size = new Size(107, 48);
+            export_button.TabIndex = 12;
+            export_button.TabStop = false;
+            export_button.Text = "Export Checkpoint";
+            export_button.UseVisualStyleBackColor = true;
+            export_button.Click += export_button_Click;
+            // 
+            // import_button
+            // 
+            import_button.Location = new Point(15, 66);
+            import_button.Name = "import_button";
+            import_button.Size = new Size(107, 48);
+            import_button.TabIndex = 13;
+            import_button.TabStop = false;
+            import_button.Text = "Import Checkpoint";
+            import_button.UseVisualStyleBackColor = true;
+            import_button.Click += import_button_Click;
+            // 
+            // openFileDialog1
+            // 
+            openFileDialog1.FileName = "openFileDialog1";
+            openFileDialog1.Filter = "Flappy-Checkpoint files|*.flappycp|All files|*.*";
+            // 
+            // saveFileDialog1
+            // 
+            saveFileDialog1.CheckPathExists = false;
+            saveFileDialog1.DefaultExt = "flappycp";
+            saveFileDialog1.FileName = "population.flappycp";
+            saveFileDialog1.Filter = "Flappy-Checkpoint files|*.flappycp|All files|*.*";
+            // 
+            // numericUpDown1
+            // 
+            numericUpDown1.Location = new Point(128, 37);
+            numericUpDown1.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            numericUpDown1.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
+            numericUpDown1.Name = "numericUpDown1";
+            numericUpDown1.Size = new Size(120, 23);
+            numericUpDown1.TabIndex = 14;
+            numericUpDown1.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
+            label3.ForeColor = SystemColors.Control;
+            label3.Location = new Point(128, 9);
+            label3.Name = "label3";
+            label3.Size = new Size(208, 28);
+            label3.TabIndex = 15;
+            label3.Text = "Birds per Generation";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Highlight;
             ClientSize = new Size(1814, 761);
+            Controls.Add(label3);
+            Controls.Add(numericUpDown1);
+            Controls.Add(export_button);
+            Controls.Add(import_button);
             Controls.Add(label2);
             Controls.Add(panel1);
             Controls.Add(pipeBot2);
@@ -268,11 +334,10 @@
             Controls.Add(bird);
             Controls.Add(pipeBot1);
             Controls.Add(pipeTop1);
-            Controls.Add(button1);
+            Controls.Add(start_button);
             Name = "Form1";
-            Text = "Form1";
+            Text = "Flappy AI";
             Load += Form1_Load;
-            KeyDown += Form1_KeyDown;
             ((System.ComponentModel.ISupportInitialize)bird).EndInit();
             pipeBot1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox4).EndInit();
@@ -287,6 +352,7 @@
             pipeTop2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox5).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox6).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numericUpDown1).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -297,7 +363,7 @@
         private Panel pipeBot1;
         private Panel pipeTop1;
         private System.Windows.Forms.Timer gameTimer;
-        private Button button1;
+        private Button start_button;
         private Label label1;
         private Panel panel1;
         private Panel pipeBot2;
@@ -311,5 +377,11 @@
         private PictureBox pictureBox5;
         private PictureBox pictureBox6;
         private Label label2;
+        private Button export_button;
+        private Button import_button;
+        private OpenFileDialog openFileDialog1;
+        private SaveFileDialog saveFileDialog1;
+        private NumericUpDown numericUpDown1;
+        private Label label3;
     }
 }

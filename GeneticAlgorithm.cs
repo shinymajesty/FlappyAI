@@ -7,15 +7,21 @@ using System.Linq;
 
 internal class GeneticAlgorithm
 {
-    private readonly int _populationSize;
-    private readonly Random _random = new();
-    public List<(double[] genome, double fitness)> Population { get; private set; } = new();
+    private readonly int populationSize;
+    private readonly Random random = new();
+
+    public int Generation { get; private set; } = 0;
+    public List<(double[] genome, double fitness)> Population { get; private set; } = [];
 
     public GeneticAlgorithm(int populationSize)
     {
-        _populationSize = populationSize;
+        this.populationSize = populationSize;
     }
 
+    public void Initialize (List<GenomeEntry> initialPopulation)
+    {
+        Population = [.. initialPopulation.Select(entry => (entry.Genome, entry.Fitness))];
+    }
     public void Initialize(List<(double[] genome, double fitness)> initialPopulation)
     {
         Population = initialPopulation;
@@ -24,29 +30,33 @@ internal class GeneticAlgorithm
     public List<double[]> EvolveNextGeneration(double mutationRate = 0.05, double mutationAmount = 0.3)
     {
         var sorted = Population.OrderByDescending(p => p.fitness).ToList();
-        var parents = sorted.Take(_populationSize / 5).ToList(); // top 20% survive
+        var parents = sorted.Take(populationSize / 2).ToList(); // top 20% survive
 
         List<double[]> nextGeneration = new();
-
-        while (nextGeneration.Count < _populationSize)
+        foreach (var (genome, fitness) in parents)
         {
-            var parent1 = parents[_random.Next(parents.Count)].genome;
-            var parent2 = parents[_random.Next(parents.Count)].genome;
+            nextGeneration.Add(genome);
+        }
 
-            var child = SpawnBaby(parent1, parent2);
+        while (nextGeneration.Count < populationSize)
+        {
+            var parent1 = parents[random.Next(parents.Count)].genome;
+            var parent2 = parents[random.Next(parents.Count)].genome;
+
+            var child = UniformCrossover(parent1, parent2);
             Mutate(child, mutationRate, mutationAmount);
             nextGeneration.Add(child);
         }
-
+        Generation++;
         return nextGeneration;
     }
 
-    private double[] SpawnBaby(double[] parent1, double[] parent2)
+    private double[] UniformCrossover(double[] parent1, double[] parent2)
     {
         var child = new double[parent1.Length];
         for (int i = 0; i < parent1.Length; i++)
         {
-            child[i] = _random.NextDouble() < 0.5 ? parent1[i] : parent2[i];
+            child[i] = random.NextDouble() < 0.5 ? parent1[i] : parent2[i];
         }
         return child;
     }
@@ -55,9 +65,9 @@ internal class GeneticAlgorithm
     {
         for (int i = 0; i < genome.Length; i++)
         {
-            if (_random.NextDouble() < rate)
+            if (random.NextDouble() < rate)
             {
-                genome[i] += (_random.NextDouble() * 2 - 1) * amount;
+                genome[i] += (random.NextDouble() * 2 - 1) * amount;
             }
         }
     }

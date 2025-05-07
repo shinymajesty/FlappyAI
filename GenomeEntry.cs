@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Accord.Neuro;
-using Accord.Neuro.Learning;
 
 namespace Game
 {
-    internal class NeuralChromosome
+    public class GenomeEntry
     {
-        
+        public double[] Genome { get; set; } = [];
+        public double Fitness { get; set; }
     }
 }

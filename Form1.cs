@@ -8,8 +8,8 @@ namespace Game
     public partial class Form1 : Form
     {
         private GameManager _gameManager;
-        private Button _addBirdButton;
-        private const int BIRD_COUNT = 100; // Default number of birds
+        private int birdCount = 100; // Default number of birds
+        private List<GenomeEntry> population = [];
 
         public Form1()
         {
@@ -19,35 +19,14 @@ namespace Game
             // Mark the original bird as template
             bird.Tag = "BirdTemplate";
 
-            // Create a list of pipe pairs
-            List<(Panel pipeBot, Panel pipeTop)> pipes = [(pipeBot1, pipeTop1), (pipeBot2, pipeTop2)];
 
             // Initialize game manager
             _gameManager = new GameManager(this, gameTimer, label1, label2);
-            _gameManager.InitializeGame(bird, pipes, BIRD_COUNT); // Start with 10 birds
 
-            // Create an "Add Bird" button
-            CreateAddBirdButton();
+
         }
 
-        private void CreateAddBirdButton()
-        {
-            _addBirdButton = new Button
-            {
-                Text = "Add Bird",
-                Location = new Point(button1.Right + 10, button1.Top),
-                Size = button1.Size,
-                Enabled = false // Disabled until game starts
-            };
 
-            _addBirdButton.Click += AddBirdButton_Click;
-            this.Controls.Add(_addBirdButton);
-        }
-
-        private void AddBirdButton_Click(object sender, EventArgs e)
-        {
-            _gameManager.AddBird(bird);
-        }
 
         private void GameTimer_Tick(object sender, EventArgs e)
         {
@@ -57,20 +36,72 @@ namespace Game
 
         private void ButtonStart_Click(object sender, EventArgs e)
         {
+            start_button.Enabled = false;
+            numericUpDown1.Enabled = false;
+            this.birdCount = (int)numericUpDown1.Value;
+            List<(Panel pipeBot, Panel pipeTop)> pipes = [(pipeBot1, pipeTop1), (pipeBot2, pipeTop2)];
+            _gameManager.InitializeGame(bird, pipes, birdCount); // Start with 10 birds
+            if (population != null && population!.Count > 0)
+            {
+                _gameManager.Initialize(population);
+            }
+
             _gameManager.StartGame();
-            button1.Enabled = false;
-            _addBirdButton.Enabled = true; // Enable the Add Bird button when game starts
             this.Focus();
         }
 
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
-            _gameManager.HandleKeyPress(e.KeyCode);
-        }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // Any additional initialization can go here
         }
+
+        private void import_button_Click(object sender, EventArgs e)
+        {
+            var x = openFileDialog1.ShowDialog();
+            if (x == DialogResult.Cancel)
+                return;
+            else if (openFileDialog1.FileName == "")
+                return;
+            else if (x == DialogResult.OK)
+            {
+                string filePath = openFileDialog1.FileName;
+                FileDAO<List<GenomeEntry>> fileDAO = new(filePath);
+                var population = fileDAO.Load("population.json");
+                if (population == null)
+                {
+                    MessageBox.Show("File not found or invalid format.");
+                    return;
+                }
+                else
+                    this.population = population;
+            }
+            else throw new Exception("Unknown error");
+
+
+        }
+
+        private void export_button_Click(object sender, EventArgs e)
+        {
+            if (saveFileDialog1.ShowDialog() == DialogResult.Cancel)
+            {
+                return;
+            }
+            else if (saveFileDialog1.FileName == "")
+            {
+                MessageBox.Show("Please select a file to save.");
+                return;
+            }
+            else
+            {
+                //Save the file 
+                var x = _gameManager.SerializablePopulation;
+                FileDAO<List<GenomeEntry>> fileDAO = new(saveFileDialog1.FileName);
+                fileDAO.Save("population.flappycp", x);
+            }
+
+
+        }
+
     }
 }
