@@ -323,6 +323,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Highlight;
             ClientSize = new Size(1814, 761);
+            Controls.Add(start_button);
             Controls.Add(label3);
             Controls.Add(numericUpDown1);
             Controls.Add(export_button);
@@ -334,7 +335,6 @@
             Controls.Add(bird);
             Controls.Add(pipeBot1);
             Controls.Add(pipeTop1);
-            Controls.Add(start_button);
             Name = "Form1";
             Text = "Flappy AI";
             Load += Form1_Load;

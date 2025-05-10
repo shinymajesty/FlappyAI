@@ -19,7 +19,7 @@ namespace Game
         private bool isGameRunning = false;
 
         public List<GenomeEntry> SerializablePopulation =>
-    [.. birdManager.Population.Select(p => new GenomeEntry { Genome = p.genome, Fitness = p.fitness })];
+        [.. birdManager.Population.Select(p => new GenomeEntry { Genome = p.genome, Fitness = p.fitness })];
 
         public void Initialize(List<GenomeEntry> initialPopulation) => birdManager.Initialize(initialPopulation);
         public GameManager(Form form, System.Windows.Forms.Timer gameTimer, Label scoreLabel, Label debugLabel)
