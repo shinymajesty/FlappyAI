@@ -8,7 +8,7 @@ namespace Game
 {
     public class GenomeEntry
     {
-        public double[] Genome { get; set; } = [];
+        public double[][] Genome { get; set; } = [];
         public double Fitness { get; set; }
     }
 }

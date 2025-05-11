@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -15,6 +15,15 @@
     <PackageReference Include="Accord.Neuro" Version="3.8.0" />
     <PackageReference Include="Accord.Statistics" Version="3.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FlappyBrain.Library">
+      <HintPath>..\flappybrain\FlappyBrain.Library\obj\Debug\net9.0\FlappyBrain.Library.dll</HintPath>
+    </Reference>
+    <Reference Include="FlappyBrain.Matrices">
+      <HintPath>..\flappybrain\FlappyBrain.Matrices\obj\Debug\net9.0\FlappyBrain.Matrices.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

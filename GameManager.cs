@@ -18,8 +18,9 @@ namespace Game
         private const int PIPE_SPEED = 10;
         private bool isGameRunning = false;
 
+        // Fixed serialization to handle double[][] properly
         public List<GenomeEntry> SerializablePopulation =>
-        [.. birdManager.Population.Select(p => new GenomeEntry { Genome = p.genome, Fitness = p.fitness })];
+            [.. birdManager.Population.Select(p => new GenomeEntry { Genome = p.genome, Fitness = p.fitness })];
 
         public void Initialize(List<GenomeEntry> initialPopulation) => birdManager.Initialize(initialPopulation);
         public GameManager(Form form, System.Windows.Forms.Timer gameTimer, Label scoreLabel, Label debugLabel)
@@ -97,7 +98,7 @@ namespace Game
             // Check for scoring
             HandleScoring(currentPipe);
 
-            
+
 
             // Update debug info
             UpdateDebugInfo(currentPipe);
@@ -138,12 +139,12 @@ namespace Game
                     currentPipe.pipeTop.Top + currentPipe.pipeTop.Height
                 };
 
-                double[] output = birdManager.Networks[0].Compute(inputs);
+                double[] output = birdManager.Networks[0].CalculateWeights(inputs);
 
                 debugLabel.Text = $"Output: {output[0]}\n" +
                                   $"Birds Alive: {birdManager.GetAliveBirds(form.ClientSize.Height).Count}\n" +
                                   $"Hit Ground: {(firstBird.Top > form.ClientSize.Height - firstBird.Height)}\n" +
-                                  $"Birds Dead: {birdManager.Birds.Count(b => b.IsDead)}\n" + 
+                                  $"Birds Dead: {birdManager.Birds.Count(b => b.IsDead)}\n" +
                                   $"Generation: {birdManager.Generation}";
             }
         }
@@ -166,11 +167,9 @@ namespace Game
             {
                 birdManager.EndGeneration();
                 ResetGame();
-                
+
             }
         }
-
-        
 
         public void AddBird(PictureBox templateBird)
         {

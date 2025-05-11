@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using Accord.Neuro;
-using Accord.Neuro.Learning;
+using FlappyBrain.Library;
 
 namespace Game
 {
     public class BirdManager
     {
         public List<Bird> Birds { get; private set; } = new();
-        public List<ActivationNetwork> Networks { get; private set; } = [];
-        public List<(double[] genome, double fitness)> Population => ga.Population;
+        public List<FlappyBrainNetwork> Networks { get; private set; } = [];
+
+        // Fix the return type to match Genetic Algorithm
+        public List<(double[][] genome, double fitness)> Population => ga.Population;
         public int Generation => ga.Generation;
 
         private readonly Form parentForm;
@@ -62,17 +63,16 @@ namespace Game
 
             // Create a neural network for the AI bird
             var network = CreateNetwork();
-            new NguyenWidrow(network).Randomize(); // Different initial weights for each bird
             Networks.Add(network);
         }
 
-        private ActivationNetwork CreateNetwork()
+        private FlappyBrainNetwork CreateNetwork()
         {
-            return new ActivationNetwork(
-                new SigmoidFunction(), // activation
+            return new FlappyBrainNetwork(
                 4,                     // inputs
                 6,                     // hidden neurons
-                1                      // output
+                1,                      // output
+                FlappyBrain.Library.ActivationFunction.Sigmoid
             );
         }
 
@@ -140,7 +140,7 @@ namespace Game
                     currentPipe.pipeTop.Top + currentPipe.pipeTop.Height
                 ];
 
-                double[] output = Networks[i].Compute(inputs);
+                double[] output = Networks[i].CalculateWeights(inputs);
 
                 if (output[0] > 0.5)
                 {
@@ -285,12 +285,10 @@ namespace Game
                 Birds.Add(bird);
 
                 // Load weights into a new network
-                ActivationNetwork net = CreateNetwork();
+                FlappyBrainNetwork net = CreateNetwork();
                 ga.SetNetworkWeights(net, newGenomes[i]);
                 Networks.Add(net);
             }
         }
-
-
     }
 }
