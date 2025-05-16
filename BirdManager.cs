@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO.Pipelines;
 using System.Windows.Forms;
 using FlappyBrain.Library;
 
@@ -32,10 +33,15 @@ namespace Game
             Networks.Add(CreateNetwork());
 
             // Create AI birds
-            for (int i = 0; i < birdCount; i++)
+            // Parallelize the creation of AI birds
+            Parallel.For(0, birdCount, i =>
             {
-                CreateAIBird(templateBird, i);
-            }
+                // All UI operations must be invoked on the UI thread
+                parentForm.Invoke(new Action(() =>
+                {
+                    CreateAIBird(templateBird, i);
+                }));
+            });
         }
 
         private void CreateAIBird(PictureBox templateBird, int index)
@@ -43,7 +49,7 @@ namespace Game
             // Create a new PictureBox based on the template
             PictureBox newBirdPicture = new()
             {
-                Image = new Bitmap(templateBird.Image),
+                Image = new Bitmap(templateBird.Image!),
                 SizeMode = templateBird.SizeMode,
                 BackColor = Color.Transparent,
                 Size = templateBird.Size,
@@ -72,16 +78,15 @@ namespace Game
                 4,                     // inputs
                 6,                     // hidden neurons
                 1,                      // output
-                FlappyBrain.Library.ActivationFunction.Sigmoid
+                FlappyBrain.Library.ActivationFunction.Sigmoid // activation function
             );
         }
 
+        // Parallelize the creation of birds and networks in Initialize
         public void Initialize(List<GenomeEntry> initialPopulation)
         {
-            // Step 1: Pass genomes to GA (so it's in sync internally)
             ga.Initialize(initialPopulation);
 
-            // Step 2: Clear old birds and networks
             foreach (var bird in Birds)
             {
                 if (bird.PictureBox != null && !bird.PictureBox.IsDisposed)
@@ -94,35 +99,52 @@ namespace Game
             Birds.Clear();
             Networks.Clear();
 
-            // Step 3: Recreate birds and load networks from genomes
-            foreach (var genome in initialPopulation)
+            // Prepare storage for results
+            var birdResults = new (PictureBox pictureBox, Bird bird, FlappyBrainNetwork network)[initialPopulation.Count];
+
+            // Parallel creation of birds and networks (thread-safe, but UI controls must be created on UI thread)
+            Parallel.For(0, initialPopulation.Count, i =>
             {
-                // Visual
-                PictureBox newBirdPicture = new()
-                {
-                    Image = new Bitmap(templateBird.Image),
-                    SizeMode = templateBird.SizeMode,
-                    BackColor = Color.Transparent,
-                    Size = templateBird.Size,
-                    Location = new Point(templateBird.Left, templateBird.Top)
-                };
+                var genome = initialPopulation[i];
 
-                parentForm.Controls.Add(newBirdPicture);
-                newBirdPicture.BringToFront();
-
-                Bird newBird = new(newBirdPicture, false);
-                Birds.Add(newBird);
-
-                // Network
+                // Create network in parallel
                 var network = CreateNetwork();
+
+                // Prepare bird and picturebox on UI thread
+                parentForm.Invoke(new Action(() =>
+                {
+                    PictureBox newBirdPicture = new()
+                    {
+                        Image = new Bitmap(templateBird.Image!),
+                        SizeMode = templateBird.SizeMode,
+                        BackColor = Color.Transparent,
+                        Size = templateBird.Size,
+                        Location = new Point(templateBird.Left, templateBird.Top)
+                    };
+
+                    parentForm.Controls.Add(newBirdPicture);
+                    newBirdPicture.BringToFront();
+
+                    Bird newBird = new(newBirdPicture, false);
+
+                    birdResults[i] = (newBirdPicture, newBird, network);
+                }));
+
+                // Set network weights (can be done in parallel)
+                ga.SetNetworkWeights(network, genome.Genome);
+            });
+
+            // Add results to lists (must be done on UI thread)
+            foreach (var (pictureBox, bird, network) in birdResults)
+            {
+                Birds.Add(bird);
                 Networks.Add(network);
-                ga.SetNetworkWeights(network, genome.Genome); // Load ge
             }
         }
         public void UpdateBirds((Panel pipeBot, Panel pipeTop) currentPipe, int clientHeight)
         {
             //CleanupDeadBirds();
-            HandleDeadBirds(clientHeight);
+            HandleDeadBirds(clientHeight, currentPipe.pipeBot, currentPipe.pipeTop);
             for (int i = 0; i < Birds.Count; i++)
             {
                 Bird bird = Birds[i];
@@ -138,6 +160,7 @@ namespace Game
                     bird.VelocityY,
                     currentPipe.pipeBot.Top,
                     currentPipe.pipeTop.Top + currentPipe.pipeTop.Height
+                
                 ];
 
                 double[] output = Networks[i].CalculateWeights(inputs);
@@ -167,7 +190,7 @@ namespace Game
             return Birds.FindAll(bird => !bird.IsDead && bird.Top <= clientHeight - bird.Height);
         }
 
-        public void HandleDeadBirds(int clientHeight)
+        public void HandleDeadBirds(int clientHeight, Panel pipeBot, Panel pipeTop)
         {
             for (int i = Birds.Count - 1; i >= 0; i--)
             {
@@ -176,7 +199,7 @@ namespace Game
                 // Check if bird hit the ground or is marked as dead
                 if (bird.Top > clientHeight - bird.Height || bird.IsDead)
                 {
-                    bird.Die();
+                    bird.Die(pipeTop, pipeBot);
 
                     // Hide the bird instead of removing it completely
                     // This allows us to reset it later if needed
@@ -185,9 +208,9 @@ namespace Game
             }
         }
 
-        public void KillBird(Bird bird)
+        public void KillBird(Bird bird, (Panel pipeBot, Panel pipeTop) currentPipe)
         {
-            bird.Die();
+            bird.Die(currentPipe.pipeTop, currentPipe.pipeBot);
             bird.PictureBox.Visible = false;
         }
 
@@ -247,6 +270,9 @@ namespace Game
             // Step 1: Send fitness data to GA
             ga.SetFitness(Birds, Networks);
 
+            
+
+
             // Step 2: Evolve next generation of genomes
             var newGenomes = ga.EvolveNextGeneration(mutationRate);
 
@@ -271,7 +297,7 @@ namespace Game
                 // Create new bird visual
                 PictureBox birdPicture = new()
                 {
-                    Image = new Bitmap(template.Image),
+                    Image = new Bitmap(template.Image!),
                     SizeMode = template.SizeMode,
                     BackColor = Color.Transparent,
                     Size = template.Size,

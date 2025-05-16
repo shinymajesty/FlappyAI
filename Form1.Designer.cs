@@ -48,8 +48,6 @@
             pictureBox5 = new PictureBox();
             pictureBox6 = new PictureBox();
             label2 = new Label();
-            export_button = new Button();
-            import_button = new Button();
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
             numericUpDown1 = new NumericUpDown();
@@ -262,28 +260,6 @@
             label2.TabIndex = 10;
             label2.Text = "label2";
             // 
-            // export_button
-            // 
-            export_button.Location = new Point(128, 66);
-            export_button.Name = "export_button";
-            export_button.Size = new Size(107, 48);
-            export_button.TabIndex = 12;
-            export_button.TabStop = false;
-            export_button.Text = "Export Checkpoint";
-            export_button.UseVisualStyleBackColor = true;
-            export_button.Click += export_button_Click;
-            // 
-            // import_button
-            // 
-            import_button.Location = new Point(15, 66);
-            import_button.Name = "import_button";
-            import_button.Size = new Size(107, 48);
-            import_button.TabIndex = 13;
-            import_button.TabStop = false;
-            import_button.Text = "Import Checkpoint";
-            import_button.UseVisualStyleBackColor = true;
-            import_button.Click += import_button_Click;
-            // 
             // openFileDialog1
             // 
             openFileDialog1.FileName = "openFileDialog1";
@@ -300,7 +276,7 @@
             // 
             numericUpDown1.Location = new Point(128, 37);
             numericUpDown1.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
-            numericUpDown1.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
+            numericUpDown1.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numericUpDown1.Name = "numericUpDown1";
             numericUpDown1.Size = new Size(120, 23);
             numericUpDown1.TabIndex = 14;
@@ -326,8 +302,6 @@
             Controls.Add(start_button);
             Controls.Add(label3);
             Controls.Add(numericUpDown1);
-            Controls.Add(export_button);
-            Controls.Add(import_button);
             Controls.Add(label2);
             Controls.Add(panel1);
             Controls.Add(pipeBot2);
@@ -377,8 +351,6 @@
         private PictureBox pictureBox5;
         private PictureBox pictureBox6;
         private Label label2;
-        private Button export_button;
-        private Button import_button;
         private OpenFileDialog openFileDialog1;
         private SaveFileDialog saveFileDialog1;
         private NumericUpDown numericUpDown1;

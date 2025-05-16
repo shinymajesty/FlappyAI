@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.IO.Pipelines;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -16,7 +17,9 @@ namespace Game
         public Rectangle Bounds => PictureBox.Bounds;
         public int VelocityY => _baseVelocityY + (((_ticksFallen * _ticksFallen) / 250));
         public bool IsDead { get; private set; } = false;
-
+        public int? CurrentPipeTop { get; private set; } = null; // Current top pipe
+        public int? CurrentPipeBottom { get; private set; } = null; // Current bottom pipe
+        private int? VerticalDistanceToPipe = null;
         /// <summary>
         /// Fitness Value for Bird
         /// </summary>
@@ -24,7 +27,7 @@ namespace Game
         /// <summary>
         /// Ticks bird has been alive, also used for fitness calculation
         /// </summary>
-        public int TicksAlive { get; set; } = 0; 
+        public int TicksAlive { get; set; } = 0;
 
         // Private fields
         private readonly int _jumpHeight = 10;
@@ -119,9 +122,11 @@ namespace Game
             PictureBox.Visible = true;
         }
 
-        public void Die()
+        public void Die(Panel top, Panel bot)
         {
             IsDead = true;
+            CurrentPipeTop = top.Top;
+            CurrentPipeBottom = bot.Top;
         }
 
         public void Dispose()
@@ -131,6 +136,22 @@ namespace Game
                 PictureBox.Image?.Dispose();
                 PictureBox.Dispose();
             }
+        }
+        public void GetVerticalDistanceToPipe()
+        {
+            if (CurrentPipeTop == null || CurrentPipeBottom == null)
+            {
+                this.VerticalDistanceToPipe = 9999;
+                return;
+            }
+
+            int pipeTop = (int)CurrentPipeTop;
+            int pipeBottom = (int)CurrentPipeBottom;
+            // Calculate the distance to the top and bottom of the pipe
+            int distanceToTop = Math.Abs(pipeTop - PictureBox.Top);
+            int distanceToBottom = Math.Abs(pipeBottom - PictureBox.Top);
+            // Return the minimum distance
+            this.VerticalDistanceToPipe = Math.Min(distanceToTop, distanceToBottom);
         }
     }
 }

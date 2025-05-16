@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace Game
 {
@@ -57,15 +58,7 @@ namespace Game
             gameTimer.Stop();
             birdManager.SetGameRunning(false);
 
-            // Disable Add Bird button when game stops
-            foreach (Control control in form.Controls)
-            {
-                if (control is Button button && button.Text.Contains("Add Bird"))
-                {
-                    button.Enabled = false;
-                    break;
-                }
-            }
+            
         }
 
         public async void ResetGame()
@@ -139,9 +132,19 @@ namespace Game
                     currentPipe.pipeTop.Top + currentPipe.pipeTop.Height
                 };
 
-                double[] output = birdManager.Networks[0].CalculateWeights(inputs);
 
-                debugLabel.Text = $"Output: {output[0]}\n" +
+                // With the following code to run for each Network and collect all results in a List:
+                List<double> outputs = new(birdManager.Networks.Count);
+                Parallel.ForEach(birdManager.Networks, network =>
+                {
+                    double output = network.CalculateWeights(inputs)[0];
+                    lock (outputs)
+                    {
+                        outputs.Add(output);
+                    }
+                });
+
+                debugLabel.Text = $"Average Output: {outputs.Average()}\n" +
                                   $"Birds Alive: {birdManager.GetAliveBirds(form.ClientSize.Height).Count}\n" +
                                   $"Hit Ground: {(firstBird.Top > form.ClientSize.Height - firstBird.Height)}\n" +
                                   $"Birds Dead: {birdManager.Birds.Count(b => b.IsDead)}\n" +
@@ -158,7 +161,7 @@ namespace Game
                 // Check if the bird hit a pipe
                 if (pipeManager.CheckCollision(bird))
                 {
-                    birdManager.KillBird(bird);
+                    birdManager.KillBird(bird, pipeManager.GetNearestPipe(bird));
                 }
             }
 

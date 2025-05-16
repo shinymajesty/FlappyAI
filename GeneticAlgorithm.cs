@@ -22,15 +22,10 @@ internal class GeneticAlgorithm
         Population = [.. initialPopulation.Select(entry => (entry.Genome, entry.Fitness))];
     }
 
-    public void Initialize(List<(double[][] genome, double fitness)> initialPopulation)
-    {
-        Population = new List<(double[][] genome, double fitness)>(initialPopulation);
-    }
-
-    public List<double[][]> EvolveNextGeneration(double mutationRate = 0.05, double mutationAmount = 0.3)
+    public List<double[][]> EvolveNextGeneration(double mutationRate = 0.5, double mutationAmount = 0.5)
     {
         var sorted = Population.OrderByDescending(p => p.fitness).ToList();
-        var parents = sorted.Take(populationSize / 2).ToList(); // top 50% survive
+        var parents = sorted.Take(populationSize / 5).ToList(); // top 50% survive
         List<double[][]> nextGeneration = new();
 
         // Add the parents to the new generation (elitism)
@@ -100,6 +95,7 @@ internal class GeneticAlgorithm
         for (int i = 0; i < birds.Count; i++)
         {
             var genome = ExtractGenome(networks[i]);
+            birds[i].GetVerticalDistanceToPipe();
             Population.Add((genome, birds[i].Fitness));
         }
     }
